@@ -8,91 +8,41 @@ namespace Calculadora
 {
     internal class Asignatura
     {
-        public string Nombre { get; private set; }
-        public List<(double calificacion, double porcentaje)> Calificaciones { get; private set; }
+        public string Nombre { get; set; }
+        public int Creditos { get; set; }
+        public List<Nota> Notas { get; set; }
 
-        public Asignatura()
+        public Asignatura(string nombre, int creditos)
         {
-            Calificaciones = new List<(double, double)>();
+            Nombre = nombre;
+            Creditos = creditos;
+            Notas = new List<Nota>();
         }
 
-        public void AgregarCalificacion(double calificacion, double porcentaje)
+        public void AgregarNota(string nombre, double valor, double porcentaje)
         {
-            Calificaciones.Add((calificacion, porcentaje));
-            Console.WriteLine("Calificación agregada correctamente.");
+            Notas.Add(new Nota(nombre, valor, porcentaje));
         }
 
         public double CalcularPromedioAcumulado()
         {
-            double sumaProductos = 0;
-            double sumaPorcentajes = 0;
+            double totalPonderado = 0;
+            double totalPorcentaje = 0;
 
-            foreach (var calificacion in Calificaciones)
+            foreach (var nota in Notas)
             {
-                sumaProductos += calificacion.calificacion * calificacion.porcentaje;
-                sumaPorcentajes += calificacion.porcentaje;
+                totalPonderado += nota.Valor * (nota.Porcentaje / 100);
+                totalPorcentaje += nota.Porcentaje;
             }
 
-            if (sumaPorcentajes == 0)
-            {
-                Console.WriteLine("No se pueden calcular promedio, no hay notas ingresadas.");
-                return 0;
-            }
-
-            return sumaProductos / sumaPorcentajes;
+            return totalPonderado / (totalPorcentaje / 100);
         }
 
         public double CalcularPromedioMinimo(double notaDeseada)
         {
-            double sumaPorcentajes = 0;
-            foreach (var calificacion in Calificaciones)
-            {
-                sumaPorcentajes += calificacion.porcentaje;
-            }
-
-            double porcentajeRestante = 100 - sumaPorcentajes;
-            if (porcentajeRestante <= 0)
-            {
-                Console.WriteLine("No se puede calcular el promedio mínimo, se han ingresado el 100% de las notas.");
-                return 0;
-            }
-
-            double sumaProductos = notaDeseada * porcentajeRestante;
-            foreach (var calificacion in Calificaciones)
-            {
-                sumaProductos -= calificacion.calificacion * calificacion.porcentaje;
-            }
-
-            return sumaProductos / porcentajeRestante;
-        }
-
-        public void IngresarDatosAsignatura()
-        {
-            Console.Write("Ingrese el nombre de la asignatura: ");
-            Nombre = Console.ReadLine();
-
-            Console.Write("Ingrese la cantidad de notas: ");
-            int cantidadNotas = Convert.ToInt32(Console.ReadLine());
-
-            double porcentajeTotal = 0;
-            for (int i = 0; i < cantidadNotas; i++)
-            {
-                Console.Write($"Ingrese el porcentaje de la nota {i + 1}: ");
-                double porcentaje = Convert.ToDouble(Console.ReadLine());
-
-                while (porcentajeTotal + porcentaje > 100)
-                {
-                    Console.WriteLine("Error: La suma de los porcentajes no puede superar el 100%.");
-                    Console.Write($"Ingrese un porcentaje válido para la nota {i + 1}: ");
-                    porcentaje = Convert.ToDouble(Console.ReadLine());
-                }
-                porcentajeTotal += porcentaje;
-
-                Console.Write($"Ingrese la calificación de la nota {i + 1}: ");
-                double calificacion = Convert.ToDouble(Console.ReadLine());
-
-                AgregarCalificacion(calificacion, porcentaje);
-            }
+            double notaActual = CalcularPromedioAcumulado();
+            double porcentajeRestante = 100 - Notas.Sum(n => n.Porcentaje);
+            return (notaDeseada - (notaActual * (Notas.Sum(n => n.Porcentaje) / 100))) / (porcentajeRestante / 100);
         }
     }
 }
